@@ -28,7 +28,7 @@ where
         fnvalue, &contents, block_width, block_height,
     )?;
 
-    let (warnings, time) = running_gcode::draw_path(
+    let (warnings, times) = running_gcode::draw_path(
         tools,
         cutting_box,
         non_cutting_box,
@@ -45,5 +45,9 @@ where
 
     writeln!(writer, "{}", "}")?;
 
-    Ok((warnings, time))
+    let mut total_time = 0.0;
+    for (_, time) in times {
+        total_time += time;
+    }
+    Ok((warnings, total_time))
 }

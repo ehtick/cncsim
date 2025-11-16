@@ -14,7 +14,11 @@ pub fn to_png<T, W: std::io::Write>(
     safe_point: (f64, f64, f64),
     s: &mut T,
     writer: &mut W,
-) -> std::io::Result<(Vec<running_gcode::Warnings>, f64)>
+) -> std::io::Result<(
+    Vec<running_gcode::Warnings>,
+    std::collections::HashMap<usize, f64>,
+    f64,
+)>
 where
     T: Iterator<Item = char>,
 {
@@ -27,13 +31,21 @@ where
         intensity.push(0);
     }
 
-    let (warnings, time) = running_gcode::draw_path(
+    let mut lowest_z = 0.0;
+    let (warnings, times) = running_gcode::draw_path(
         tools,
         cutting_box,
         non_cutting_box,
         safe_point,
         s,
         |p1, p2, length, radius, color| {
+            if p1.2 < lowest_z {
+                lowest_z = p1.2;
+            }
+            if p2.2 < lowest_z {
+                lowest_z = p2.2;
+            }
+
             if p1.2 > 0.0 && p2.0 > 0.0 {
                 return;
             }
@@ -76,7 +88,7 @@ where
                             r.push((x as u32, y as u32));
                             let position = (image_size.1 - y as u32) * image_size.0 + x as u32;
                             let new_value = 255.0 * (1.0 - (distance / radius).powf(2.0));
-                            if new_value > intensity[position as usize] as f64 {
+                            if new_value >= intensity[position as usize] as f64 {
                                 data[position as usize * 3 + 0] = (new_value * color.0) as u8;
                                 data[position as usize * 3 + 1] = (new_value * color.1) as u8;
                                 data[position as usize * 3 + 2] = (new_value * color.2) as u8;
@@ -96,7 +108,7 @@ where
 
     let r = img.encode(&data, image_size.0, image_size.1, image::ColorType::Rgb8);
 
-    Ok((warnings, time))
+    Ok((warnings, times, lowest_z))
 }
 
 fn float_loop(start: f64, threshold: f64, step_size: f64) -> impl Iterator<Item = f64> {

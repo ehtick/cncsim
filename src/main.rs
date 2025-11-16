@@ -73,7 +73,7 @@ fn get_tools() -> Vec<utils::cncrouter::Tool> {
             // 2
             radius: 0.02 / 2.0,
             length: 1.0,
-            color: (1.0, 1.0, 1.0),
+            color: (0.0, 1.0, 0.0),
         },
         utils::cncrouter::Tool {
             // 3
@@ -111,6 +111,108 @@ fn get_tools() -> Vec<utils::cncrouter::Tool> {
             radius: 0.5 / 2.0,
             length: 1.0,
             color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 9
+            radius: 0.5 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 10
+            radius: 0.5 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 11
+            radius: 0.015 / 2.0,
+            length: 1.0,
+            color: (0.0, 1.0, 0.0),
+        },
+        utils::cncrouter::Tool {
+            // 12
+            radius: 0.5 / 2.0,
+            length: 1.0,
+            color: (0.0, 1.0, 0.0),
+        },
+        utils::cncrouter::Tool {
+            // 13
+            radius: 0.030 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 14
+            radius: 0.030 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 15
+            radius: 0.030 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 16
+            radius: 0.030 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 17
+            radius: 0.070 / 2.0,
+            length: 1.0,
+            color: (0.0, 1.0, 0.0),
+        },
+        utils::cncrouter::Tool {
+            // 18
+            radius: 0.030 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 19
+            radius: (1. / 32.) / 2.,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 20
+            radius: 0.030 / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 21
+            radius: (3.0 / 16.0) / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 22
+            radius: 0.070 / 2.0,
+            length: 1.0,
+            color: (0.0, 1.0, 0.0),
+        },
+        utils::cncrouter::Tool {
+            // 23
+            radius: (3.0 / 32.0) / 2.0,
+            length: 1.0,
+            color: (1.0, 1.0, 1.0),
+        },
+        utils::cncrouter::Tool {
+            // 24
+            radius: 0.090 / 2.0,
+            length: 1.0,
+            color: (0.0, 1.0, 0.0),
+        },
+        utils::cncrouter::Tool {
+            // 25
+            radius: 0.095 / 2.0,
+            length: 1.0,
+            color: (0.0, 1.0, 0.0),
         },
     ]
 }
@@ -160,7 +262,7 @@ fn main() -> io::Result<()> {
         print!("STDERR:\n{}", stderr);
     } else {
         let mut output = fs::File::create(args.output)?;
-        if let Ok((messages, time)) = utils::toimage::to_png(
+        if let Ok((messages, times, _)) = utils::toimage::to_png(
             (args.imgwidth as u32, args.imgheight as u32),
             (0.0, 0.0, args.blockwidth, args.blockheight),
             0.0,
@@ -179,7 +281,12 @@ fn main() -> io::Result<()> {
                     .collect::<Vec<String>>()
                     .join("\n")
             );
-            eprintln!("Took {:.2} minutes", time);
+            let mut total = 0.0;
+            for (tool, time) in times {
+                eprintln!("Tool {} {:.2} minutes", tool, time);
+                total += time;
+            }
+            eprintln!("Took {:.2} minutes", total);
         }
     }
 

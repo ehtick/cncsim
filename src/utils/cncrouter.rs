@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::convert::From;
 
 pub struct CNCRouter {
@@ -6,6 +7,7 @@ pub struct CNCRouter {
     tool_index: usize,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {
     pub radius: f64,
     pub length: f64,
@@ -53,6 +55,9 @@ impl CNCRouter {
     }
     pub fn get_pos(&self) -> &Coordinate {
         &self.pos
+    }
+    pub fn tool_index(&self) -> usize {
+        self.tool_index
     }
     pub fn get_tool(&self) -> &Tool {
         &self.tools[self.tool_index]

@@ -195,11 +195,12 @@ pub fn draw_path<T, F: FnMut(Point, Point, f64, f64, (f64, f64, f64))>(
     safe_point: (f64, f64, f64),
     s: &mut T,
     mut draw_line: F,
-) -> (Vec<Warnings>, f64)
+) -> (Vec<Warnings>, std::collections::HashMap<usize, f64>)
 where
     T: Iterator<Item = char>,
 {
     let mut warnings = std::collections::HashSet::new();
+    let mut times = std::collections::HashMap::new();
     let mut time = 0.0;
 
     let mut cnc: cncrouter::CNCRouter = tools.into();
@@ -260,11 +261,20 @@ where
 
             if changed_m {
                 if variables[&'M'] == 6.0 {
+                    if let Some(value) = times.get_mut(&(cnc.tool_index() + 1)) {
+                        *value += time;
+                    } else {
+                        times.insert(cnc.tool_index() + 1, time);
+                    }
+                    time = 0.09;
+
                     cnc.set_tool((&variables[&'T']).round() as usize - 1);
                     spindle_on = false;
-                    // time += 0.1;
+                    variables.insert('X', 0.0);
+                    variables.insert('Y', 0.0);
+                    variables.insert('Z', 9.0);
                 }
-            } else if changed_pos && cnc.get_pos().z < 0.0 && cnc.get_pos().z == variables[&'Z'] {
+            } else if changed_pos && cnc.get_pos().z < -0.01 && cnc.get_pos().z == variables[&'Z'] {
                 draw_line(
                     Point(cnc.get_pos().x, cnc.get_pos().y, cnc.get_pos().z),
                     Point(variables[&'X'], variables[&'Y'], variables[&'Z']),
@@ -330,6 +340,7 @@ where
             } else if c == 'G' && value == 1. {
                 is_fast_route = false;
             }
+
             variables_updates.push(c);
         } else if c == '(' {
             while let Some(n) = s.next() {
@@ -343,7 +354,12 @@ where
         }
     }
 
-    return (warnings.into_iter().collect(), time);
+    if let Some(value) = times.get_mut(&(cnc.tool_index() + 1)) {
+        *value += time;
+    } else {
+        times.insert(cnc.tool_index() + 1, time);
+    }
+    return (warnings.into_iter().collect(), times);
 }
 
 #[cfg(test)]
